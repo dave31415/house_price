@@ -55,7 +55,7 @@ def get_zip_sampler(seed=None):
 def get_samples(num):
     data = stream_data()
     look_up = {i['zipcode']: i for i in data}
-    sampler = get_zip_sampler()
+    sampler = get_zip_sampler(seed=420)
     output = []
     sigma = 10000.0
     sf_min = 800
@@ -213,7 +213,7 @@ def get_samples(num):
             return output
 
 
-def process_input(row):
+def process_input(row, row_num):
     out_row = row.copy()
     del_keys = ['state_metro',
                 'state_metro_county',
@@ -227,17 +227,22 @@ def process_input(row):
     for dk in del_keys:
         del out_row[dk]
 
+    out_row['sale_id'] = row_num
     return out_row
 
 
 def get_data(num):
     samples = get_samples(num)
-    return [process_input(i) for i in samples]
+    return [process_input(row, row_num) for row_num, row in enumerate(samples)]
 
 
 def write_data(num):
     data = get_data(num)
     fields = list(data[0].keys())
+    # move sale_id first
+    fields.remove('sale_id')
+    fields = ['sale_id'] + fields
+
     filename = file_names['house_data'].format(num=num)
     dr = DictWriter(open(filename, 'w'), fieldnames=fields)
     dr.writeheader()
