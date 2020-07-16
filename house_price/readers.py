@@ -231,9 +231,24 @@ def process_input(row, row_num):
     return out_row
 
 
+def process_lookup(row):
+    out_row = row.copy()
+    del_keys = ['avg_price']
+
+    for dk in del_keys:
+        del out_row[dk]
+
+    return out_row
+
+
 def get_data(num):
     samples = get_samples(num)
     return [process_input(row, row_num) for row_num, row in enumerate(samples)]
+
+
+def get_lookup_data():
+    stream = stream_data()
+    return [process_lookup(row) for row in stream]
 
 
 def write_data(num):
@@ -249,3 +264,11 @@ def write_data(num):
     dr.writerows(data)
 
 
+def write_lookup_data():
+    data = get_lookup_data()
+    fields = list(data[0].keys())
+
+    filename = file_names['zip_lookup']
+    dr = DictWriter(open(filename, 'w'), fieldnames=fields)
+    dr.writeheader()
+    dr.writerows(data)
